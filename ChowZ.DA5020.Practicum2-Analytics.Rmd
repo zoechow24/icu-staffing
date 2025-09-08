@@ -1,0 +1,154 @@
+---
+title: "Hospital Data Analytics & Reporting"
+author: "Zoe Chow"
+date: "Spring 2025"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+subtitle: DA5020 / Practicum II
+---
+```{r LoadPkg, include=F}
+# Load Packages
+suppressPackageStartupMessages(library(RSQLite))
+suppressPackageStartupMessages(library(kableExtra))
+suppressPackageStartupMessages(library(dplyr))
+```
+
+
+```{r LoadDB, include=F}
+# Load SQLite
+dbcon <- dbConnect(RSQLite::SQLite(), "hospital-beds.sqlitedb")
+```
+
+
+# Analysis of Medical Facilities
+```{r analysis, include=F}
+# create the summary table
+summ_table <- dbGetQuery(dbcon,
+                         "SELECT 
+                            COUNT(*) AS 'Total Number of Institutions',
+                            SUM(TTL_licensed) AS 'Total Number of Licensed Beds',
+                            SUM(TTL_staffed) AS 'Total Number of Staffed Beds',
+                            SUM(TTL_staffed)/COUNT(*) AS 'Average Number of Staffed Beds'
+                          FROM Facility")
+
+summ_table <- summ_table %>%
+  mutate(
+    `Total Number of Institutions` = format(`Total Number of Institutions`, big.mark = ","),
+    `Total Number of Licensed Beds` = format(`Total Number of Licensed Beds`, big.mark = ","),
+    `Total Number of Staffed Beds` = format(`Total Number of Staffed Beds`, big.mark = ",")
+  )
+  
+
+per_staffed <- dbGetQuery(dbcon,
+                          "SELECT
+                            ROUND((SUM(CAST(TTL_staffed AS REAL)) / SUM(CAST(TTL_licensed AS REAL)) * 100), 2)
+                            AS percent_staffed 
+                            FROM Facility")
+
+
+inst_o100st <- dbGetQuery(dbcon, 
+                          "SELECT COUNT(*) 
+                            FROM Facility
+                            WHERE TTL_staffed > 100")
+```
+
+We have analyzed **`r summ_table[[1,1]]`** medical institutions having a total of **`r summ_table[[1,2]]`** licensed beds. However, not all beds are staffed. In fact, only **`r per_staffed[[1,1]]`%** of all licensed beds are staffed. There are **`r format(inst_o100st[[1,1]], big.mark=",")`** institutions that have more than 100 staffed beds. The table below summarizes key information:
+
+```{r echo=F}
+# display table
+kbl(summ_table) %>%
+  kable_classic(html_font = "Arial")
+```
+
+
+<br>
+The chart below shows the distribution of beds:
+```{r pi, echo=F, fig.align="center"}
+bed_distr <- dbGetQuery(dbcon,
+                        "SELECT 
+                          SUM(licensed) AS Licensed,
+                          SUM(census) AS Census,
+                          SUM(staffed) AS Staffed
+                          FROM Bed_Facts")
+
+values <- unlist(bed_distr) 
+labels <- names(bed_distr)  
+pie(values, labels, main = "Bed Distributions")
+```
+
+<br>
+
+The breakdown of beds across the different types of beds is shown below:
+```{r bed_types, echo=F}
+types_tbl <- dbGetQuery(dbcon,
+                        "SELECT c.category AS Category, 
+                                SUM(f.licensed) AS 'Number of Licensed Beds', 
+                                SUM(f.census) AS 'Number of Census Beds', 
+                                SUM(f.staffed) AS 'Number of Staffed Beds'
+                         FROM Bed_Categories c JOIN Bed_Facts f ON (c.catID = f.catID)
+                         GROUP BY c.category")
+
+types_tbl <- types_tbl %>%
+  mutate(
+    `Number of Licensed Beds` = format(`Number of Licensed Beds`, big.mark = ","),
+    `Number of Census Beds` = format(`Number of Census Beds`, big.mark = ","),
+    `Number of Staffed Beds` = format(`Number of Staffed Beds`, big.mark = ",")
+  )
+  
+
+kbl(types_tbl) %>%
+  kable_classic("striped", html_font = "Arial")
+```
+
+<br>
+
+The top 10 facilities with the most staffed beds are listed below, along with the number of beds:
+```{r top10, echo=F}
+top10 <- dbGetQuery(dbcon, 
+                    "SELECT name AS Facility, TTL_staffed AS 'Number of Staffed Beds'
+                     FROM Facility
+                     ORDER BY TTL_staffed DESC
+                     LIMIT 10")
+
+kbl(top10) %>%
+  kable_classic("striped", html_font = "Arial")
+
+```
+
+<br>
+
+The table below shows the names of the institutions with the most number of staffed beds per type of bed:
+```{r mostStaffed, echo=F}
+mostStaffed <- dbGetQuery(dbcon,
+                          "SELECT
+                              c.descr AS 'Type of Bed',
+                              f.name AS Facility,
+                              bf.staffed AS 'Number of Staffed Beds'
+                              
+                           FROM Bed_Facts bf 
+                              JOIN Bed_Categories c ON (bf.catID = c.catID)
+                              JOIN Facility f ON (bf.IMSID = f.IMSID)
+                           
+                           WHERE (bf.catID, bf.staffed) IN (
+                              SELECT catID, 
+                                     MAX(staffed) AS max_staffed
+                              FROM Bed_Facts
+                              GROUP BY catID
+                              )
+                              
+                           ORDER BY bf.staffed DESC
+                          ")
+
+kbl(mostStaffed) %>%
+  kable_classic("striped", html_font = "Arial")
+
+```
+
+
+```{r DisconnectDB, include=F}
+# Disconnect
+dbDisconnect(dbcon)
+```
+
