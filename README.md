@@ -50,5 +50,3 @@ The data flow diagram below illustrates the workflow.
 
 ## Results
 The [final report](https://zoechow24.github.io/icu-staffing/AnalyticsReport.html) an analysis of the data provided, including the facilites, licensed beds, staffed beds, and categories. Polished graphs and tables are provided.
-# ICU Staffing 
-## Overview
