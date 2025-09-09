@@ -1,4 +1,7 @@
 # ICU Staffing 
+## Course
+DA5020 - Collecting, Storing, and Analyzing Data
+
 ## Overview
 This project simulates a real-world healthcare analytics scenario where Integrated Health Anallytics Services LLP (IHAS) is contracted by Parplex, an Integrated Delivery System (IDS). Leadership at Parplex is evaluating whether to hire additional nurses in their hospital network, with a focus on ICU and SICU units.
 
