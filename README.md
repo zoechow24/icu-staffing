@@ -45,6 +45,14 @@ The data flow diagram below illustrates the workflow.
 * Data aggregation
 * Data visualization
 
+## Dependencies
+This project uses the following packages:
+* RSQLite
+* XML
+* RCurl
+* dplyr
+* kableExtra
+
 ## Methodology
 1. Run `CreateDB.R`
 2. Run `LoadDB.R`
