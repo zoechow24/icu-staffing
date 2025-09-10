@@ -38,14 +38,18 @@ The data flow diagram below illustrates the workflow.
     * [Rendered report](https://zoechow24.github.io/icu-staffing/AnalyticsReport.html)
 
 ## Tools & Skills
+### Languages & Environment: 
 * R
+* RStudio
 * HTML
 * SQL
+
+### Skills:
 * Data extraction & wrangling 
 * Data aggregation
 * Data visualization
 
-## Dependencies
+## Dependencies:
 This project uses the following packages:
 * RSQLite
 * XML
