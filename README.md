@@ -49,7 +49,7 @@ The data flow diagram below illustrates the workflow.
 * Data aggregation
 * Data visualization
 
-## Dependencies:
+### Dependencies:
 This project uses the following packages:
 * RSQLite
 * XML
